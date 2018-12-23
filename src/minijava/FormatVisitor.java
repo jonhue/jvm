@@ -3,7 +3,7 @@ package minijava;
 import codegen.*;
 
 public class FormatVisitor implements ProgramVisitor {
-  private static int indentationFactor = 2;
+  private static int INDENTATION_FACTOR = 2;
 
   private String formattedCode = "";
   private int indentation;
@@ -240,7 +240,7 @@ public class FormatVisitor implements ProgramVisitor {
   private String indent() {
     String result = "";
 
-    for (int i = 0; i < indentation * indentationFactor; i++)
+    for (int i = 0; i < indentation * INDENTATION_FACTOR; i++)
       result += " ";
 
     return result;
