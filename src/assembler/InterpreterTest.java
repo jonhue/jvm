@@ -25,19 +25,11 @@ public class InterpreterTest {
             new Mul(),
             new Return(1)
     };
-
-    AsmFormatVisitor asmFormatVisitor1 = new AsmFormatVisitor();
-    for (Instruction instruction : instructions1)
-      instruction.accept(asmFormatVisitor1);
-    System.out.println(asmFormatVisitor1.getFormattedAsm());
+    renderAsm(instructions1);
+    System.out.println("Fakultät:");
+    interpret(instructions1);
 
     System.out.println("---");
-
-    System.out.println("Fakultät:");
-    Interpreter interpreter1 = new Interpreter(instructions1);
-    interpreter1.execute();
-
-    System.out.println("\n===\n");
 
     Instruction[] instructions2 = {
             new In(),
@@ -72,16 +64,20 @@ public class InterpreterTest {
             new Lfs(-1),
             new Return(3)
     };
-
-    AsmFormatVisitor asmFormatVisitor2 = new AsmFormatVisitor();
-    for (Instruction instruction : instructions2)
-      instruction.accept(asmFormatVisitor2);
-    System.out.println(asmFormatVisitor2.getFormattedAsm());
-
-    System.out.println("---");
-
+    renderAsm(instructions2);
     System.out.println("GGT:");
-    Interpreter interpreter2 = new Interpreter(instructions2);
-    interpreter2.execute();
+    interpret(instructions2);
+  }
+
+  private static void renderAsm(Instruction[] instructions) {
+    AsmFormatVisitor asmFormatVisitor = new AsmFormatVisitor();
+    for (Instruction instruction : instructions)
+      instruction.accept(asmFormatVisitor);
+    System.out.println(asmFormatVisitor.getFormattedAsm());
+  }
+
+  private static void interpret(Instruction[] instructions) {
+    Interpreter interpreter = new Interpreter(instructions);
+    interpreter.execute();
   }
 }

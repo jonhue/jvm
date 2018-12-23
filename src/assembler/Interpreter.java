@@ -9,21 +9,24 @@ public class Interpreter implements AsmVisitor {
   private int sp = -1;
   private int fp = -1;
   private int pc;
-  private boolean finished;
+  private boolean halt;
   private Instruction[] instructions;
 
   public Interpreter(Instruction[] instructions) {
     this.instructions = instructions;
   }
 
-  public int execute() {
-    while (!finished) {
-      if (pc == instructions.length) break;
+  public int execute() throws InstructionOverflowException, StackManagementException {
+    while (!halt) {
       pc++;
+
+      if (pc > instructions.length) throw new InstructionOverflowException("Missing HALT instruction.");
+      if (pc < 0) throw new InstructionOverflowException("Undefined program counter value.");
       instructions[pc - 1].accept(this);
     }
 
-    return stack[stack.length - 1];
+    if (stack.length < 1) throw new StackManagementException("At the end of a program the stack should contain at least one element.");
+    return stack[0];
   }
 
   public void visit(Add c) {
@@ -73,7 +76,7 @@ public class Interpreter implements AsmVisitor {
   }
 
   public void visit(Halt c) {
-    finished = true;
+    halt = true;
   }
 
   public void visit(In c) {
@@ -86,8 +89,11 @@ public class Interpreter implements AsmVisitor {
     push(c.getC());
   }
 
-  public void visit(Lfs c) {
-    push(stack[fp + c.getI()]);
+  public void visit(Lfs c) throws StackManagementException {
+    int stackIndex = fp + c.getI();
+    if (stack.length - 1 < stackIndex) throw new StackManagementException("This address on the stack is invalid.");
+
+    push(stack[stackIndex]);
   }
 
   public void visit(Mod c) {
@@ -126,8 +132,9 @@ public class Interpreter implements AsmVisitor {
       push(r1);
   }
 
-  public void visit(Return c) {
+  public void visit(Return c) throws StackManagementException {
     int result = pop();
+    if (c.getN() > stack.length) throw new StackManagementException("Cannot return with more addresses than there are in the stack.");
     int[] newStack = new int[stack.length - c.getN()];
 
     java.lang.System.arraycopy(stack, 0, newStack, 0, newStack.length);
@@ -140,9 +147,12 @@ public class Interpreter implements AsmVisitor {
     push(result);
   }
 
-  public void visit(Sts c) {
+  public void visit(Sts c) throws StackManagementException {
     int var = pop(); // Does not work inline!
-    stack[fp + c.getI()] = var;
+    int stackIndex = fp + c.getI();
+    if (stack.length - 1 < stackIndex) throw new StackManagementException("This address on the stack is invalid.");
+
+    stack[stackIndex] = var;
   }
 
   public void visit(Sub c) {
@@ -157,7 +167,8 @@ public class Interpreter implements AsmVisitor {
     stack = newStack;
   }
 
-  private int pop() {
+  private int pop() throws StackManagementException {
+    if (stack.length == 0) throw new StackManagementException("Cannot pop element from an empty stack.");
     int[] newStack = new int[stack.length - 1];
     int result = stack[sp--];
 

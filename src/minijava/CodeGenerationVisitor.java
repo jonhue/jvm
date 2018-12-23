@@ -12,15 +12,17 @@ public class CodeGenerationVisitor implements ProgramVisitor {
   private HashMap<String, Integer> variableIndices;
   private HashMap<String, Integer> functionIndices = new HashMap<>();
   private HashMap<Integer, String> functionCallStack = new HashMap<>();
-  private ArrayList<Integer> breakIndices;
+  private ArrayList<ArrayList<Integer>> breakIndicesStack = new ArrayList<>();
   private Instruction[] program = new Instruction[0];
 
   public Instruction[] getProgram() {
     return program;
   }
 
-  public void visit(Assignment c) {
+  public void visit(Assignment c) throws UndefinedVariableException {
     c.getExpression().accept(this);
+
+    if (variableIndices.get(c.getName()) == null) throw new UndefinedVariableException("`" + c.getName() + "` has not been defined in this context.");
     addInstruction(new Sts(variableIndices.get(c.getName())));
   }
 
@@ -37,7 +39,8 @@ public class CodeGenerationVisitor implements ProgramVisitor {
   }
 
   public void visit(Break c) {
-    breakIndices.add(program.length);
+    addInstruction(new Ldi(-1));
+    currentBreakIndicesSet().add(program.length);
     addInstruction(new Nop());
   }
 
@@ -118,7 +121,7 @@ public class CodeGenerationVisitor implements ProgramVisitor {
     addInstruction(new Ldi(c.getValue()));
   }
 
-  public void visit(Program c) {
+  public void visit(Program c) throws UndefinedFunctionException {
     mainFunction(c).accept(this);
 
     for (Function function : c.getFunctions())
@@ -126,7 +129,10 @@ public class CodeGenerationVisitor implements ProgramVisitor {
 
     /* Replace dummy NOPs by LDIs to push the line number of the function to be called onto the stack */
     for (HashMap.Entry<Integer, String> functionCall : functionCallStack.entrySet())
-      program[functionCall.getKey()] = new Ldi(functionIndices.get(functionCall.getValue()));
+      if (functionIndices.get(functionCall.getValue()) == null)
+        throw new UndefinedFunctionException("Tried to call a function that has not been defined.");
+      else
+        program[functionCall.getKey()] = new Ldi(functionIndices.get(functionCall.getValue()));
   }
 
   public void visit(Read c) {
@@ -143,7 +149,8 @@ public class CodeGenerationVisitor implements ProgramVisitor {
   }
 
   public void visit(Switch c) {
-    breakIndices = new ArrayList<>();
+    breakIndicesStack.add(new ArrayList<>());
+
     c.getExpression().accept(this);
     addInstruction(new Pop(0));
 
@@ -153,14 +160,17 @@ public class CodeGenerationVisitor implements ProgramVisitor {
     if (c.getDefault() != null) c.getDefault().accept(this);
 
     // replace dummy NOPs with jumps to end of switch statement
-    for (Integer index : breakIndices)
+    for (Integer index : currentBreakIndicesSet())
       program[index] = new Brc(program.length);
+
+    breakIndicesStack.remove(breakIndicesStack.size() - 1);
   }
 
   public void visit(SwitchCase c) {
     addInstruction(new Push(0));
     addInstruction(new Ldi(c.getNumber()));
     addInstruction(new Cmp("EQUALS"));
+    addInstruction(new Not());
     int nextCaseIndex = program.length;
     addInstruction(new Nop());
     c.getCaseStatement().accept(this);
@@ -181,7 +191,8 @@ public class CodeGenerationVisitor implements ProgramVisitor {
     addOperatorInstruction(c.getOperator());
   }
 
-  public void visit(Variable c) {
+  public void visit(Variable c) throws UndefinedVariableException {
+    if (variableIndices.get(c.getName()) == null) throw new UndefinedVariableException("`" + c.getName() + "` has not been defined in this context.");
     addInstruction(new Lfs(variableIndices.get(c.getName())));
   }
 
@@ -217,7 +228,7 @@ public class CodeGenerationVisitor implements ProgramVisitor {
     program[program.length - 1] = instruction;
   }
 
-  private void addOperatorInstruction(Object operator) throws InvalidOperator {
+  private void addOperatorInstruction(Object operator) throws UndefinedOperatorException {
     if (operator == Bbinop.And) {
       addInstruction(new And());
     } else if(operator == Bbinop.Or) {
@@ -269,7 +280,7 @@ public class CodeGenerationVisitor implements ProgramVisitor {
       addInstruction(new Ldi(1));
       addInstruction(new Add());
     } else {
-      throw new InvalidOperator("The passed operator is invalid.");
+      throw new UndefinedOperatorException("This operator is undefined.");
     }
   }
 
@@ -277,11 +288,18 @@ public class CodeGenerationVisitor implements ProgramVisitor {
     return Arrays.stream(currentFunction.getDeclarations()).mapToInt(c -> c.getNames().length).sum();
   }
 
-  private Function mainFunction(Program program) throws MissingMainFunctionException {
+  private Function mainFunction(Program program) throws MainFunctionUndefinedException {
     for (Function function : program.getFunctions())
       if (function.getName().equals("main"))
         return function;
 
-    throw new MissingMainFunctionException("Program must contain a function named `main`.");
+    throw new MainFunctionUndefinedException("Program must contain a function named `main`.");
+  }
+
+  private ArrayList<Integer> currentBreakIndicesSet() throws BreakOutOfContextException {
+    if (breakIndicesStack.get(breakIndicesStack.size() - 1) == null)
+      throw new BreakOutOfContextException("the `break` statement cannot be used outside of switch statements.");
+
+    return breakIndicesStack.get(breakIndicesStack.size() - 1);
   }
 }

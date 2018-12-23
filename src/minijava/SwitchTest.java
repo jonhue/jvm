@@ -5,7 +5,7 @@ import codegen.*;
 
 public class SwitchTest {
   public static void main(String[] args) {
-    Function main1 = new Function("main",
+    Function main = new Function("main",
             new String[] {},
             new Declaration[] {new Declaration(new String[] {"x", "y", "z"})},
             new Statement[] {
@@ -33,26 +33,35 @@ public class SwitchTest {
                     new Return(new Number(0))
             });
 
-    Program program1 = new Program(new Function[] {main1});
+    Program program = new Program(new Function[] {main});
 
-    FormatVisitor formatVisitor1 = new FormatVisitor();
-    program1.accept(formatVisitor1);
-    System.out.println(formatVisitor1.getFormattedCode());
+    renderMiniJava(program);
+    Instruction[] instructions = compile(program);
+    renderAsm(instructions);
+    interpret(instructions);
+  }
 
-    System.out.println("---");
+  private static void renderMiniJava(Program program) {
+    FormatVisitor formatVisitor = new FormatVisitor();
+    program.accept(formatVisitor);
+    System.out.println(formatVisitor.getFormattedCode());
+  }
 
-    CodeGenerationVisitor codeGenerationVisitor1 = new CodeGenerationVisitor();
-    program1.accept(codeGenerationVisitor1);
-    Instruction[] instructions1 = codeGenerationVisitor1.getProgram();
+  private static Instruction[] compile(Program program) {
+    CodeGenerationVisitor codeGenerationVisitor = new CodeGenerationVisitor();
+    program.accept(codeGenerationVisitor);
+    return codeGenerationVisitor.getProgram();
+  }
 
-    AsmFormatVisitor asmFormatVisitor1 = new AsmFormatVisitor();
-    for (Instruction instruction : instructions1)
-      instruction.accept(asmFormatVisitor1);
-    System.out.println(asmFormatVisitor1.getFormattedAsm());
+  private static void renderAsm(Instruction[] instructions) {
+    AsmFormatVisitor asmFormatVisitor = new AsmFormatVisitor();
+    for (Instruction instruction : instructions)
+      instruction.accept(asmFormatVisitor);
+    System.out.println(asmFormatVisitor.getFormattedAsm());
+  }
 
-    System.out.println("---");
-
-    Interpreter interpreter1 = new Interpreter(instructions1);
-    interpreter1.execute();
+  private static void interpret(Instruction[] instructions) {
+    Interpreter interpreter = new Interpreter(instructions);
+    interpreter.execute();
   }
 }

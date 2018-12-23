@@ -22,6 +22,10 @@ public class FormatTest {
 
     Program program = new Program(new Function[] {sum, main});
 
+    renderMiniJava(program);
+  }
+
+  private static void renderMiniJava(Program program) {
     FormatVisitor formatVisitor = new FormatVisitor();
     program.accept(formatVisitor);
     System.out.println(formatVisitor.getFormattedCode());

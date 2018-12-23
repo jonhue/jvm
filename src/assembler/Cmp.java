@@ -5,7 +5,7 @@ public class Cmp extends Instruction {
 
   public Cmp(String op) throws IllegalArgumentException {
     if (op != "EQUALS" && op != "LESS")
-      throw new IllegalArgumentException("op must be one of \"EQUALS\", \"LESS\".");
+      throw new IllegalArgumentException("op must be one of `EQUALS`, `LESS`.");
 
     this.op = op;
   }
