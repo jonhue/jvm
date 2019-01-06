@@ -9,94 +9,94 @@ public class AsmFormatVisitor implements AsmVisitor {
   }
 
   public void visit(Add c) {
-    formattedAsm += getLineIndex() + "ADD\n";
+    addLine("ADD\n");
   }
 
   public void visit(And c) {
-    formattedAsm += getLineIndex() + "AND\n";
+    addLine("AND\n");
   }
 
   public void visit(Brc c) {
-    formattedAsm += getLineIndex() + "BRC " + c.getI() + "\n";
+    addLine("BRC " + c.getI() + "\n");
   }
 
   public void visit(Call c) {
-    formattedAsm += getLineIndex() + "CALL " + c.getN() + "\n";
+    addLine("CALL " + c.getN() + "\n");
   }
 
   public void visit(Cmp c) {
-    formattedAsm += getLineIndex() + "CMP " + c.getOp() + "\n";
+    addLine("CMP " + c.getOp() + "\n");
   }
 
   public void visit(Decl c) {
-    formattedAsm += getLineIndex() + "DECL " + c.getN() + "\n";
+    addLine("DECL " + c.getN() + "\n");
   }
 
   public void visit(Div c) {
-    formattedAsm += getLineIndex() + "DIV\n";
+    addLine("DIV\n");
   }
 
   public void visit(Halt c) {
-    formattedAsm += getLineIndex() + "HALT\n";
+    addLine("HALT\n");
   }
 
   public void visit(In c) {
-    formattedAsm += getLineIndex() + "IN\n";
+    addLine("IN\n");
   }
 
   public void visit(Ldi c) {
-    formattedAsm += getLineIndex() + "LDI " + c.getC() + "\n";
+    addLine("LDI " + c.getC() + "\n");
   }
 
   public void visit(Lfs c) {
-    formattedAsm += getLineIndex() + "LFS " + c.getI() + "\n";
+    addLine("LFS " + c.getI() + "\n");
   }
 
   public void visit(Mod c) {
-    formattedAsm += getLineIndex() + "MOD\n";
+    addLine("MOD\n");
   }
 
   public void visit(Mul c) {
-    formattedAsm += getLineIndex() + "MUL\n";
+    addLine("MUL\n");
   }
 
   public void visit(Not c) {
-    formattedAsm += getLineIndex() + "NOT\n";
+    addLine("NOT\n");
   }
 
   public void visit(Nop c) {
-    formattedAsm += getLineIndex() + "NOP\n";
+    addLine("NOP\n");
   }
 
   public void visit(Or c) {
-    formattedAsm += getLineIndex() + "OR\n";
+    addLine("OR\n");
   }
 
   public void visit(Out c) {
-    formattedAsm += getLineIndex() + "OUT\n";
+    addLine("OUT\n");
   }
 
   public void visit(Pop c) {
-    formattedAsm += getLineIndex() + "POP " + c.getI() + "\n";
+    addLine("POP " + c.getI() + "\n");
   }
 
   public void visit(Push c) {
-    formattedAsm += getLineIndex() + "PUSH " + c.getI() + "\n";
+    addLine("PUSH " + c.getI() + "\n");
   }
 
   public void visit(Return c) {
-    formattedAsm += getLineIndex() + "RETURN " + c.getN() + "\n";
+    addLine("RETURN " + c.getN() + "\n");
   }
 
   public void visit(Sts c) {
-    formattedAsm += getLineIndex() + "STS " + c.getI() + "\n";
+    addLine("STS " + c.getI() + "\n");
   }
 
   public void visit(Sub c) {
-    formattedAsm += getLineIndex() + "SUB\n";
+    addLine("SUB\n");
   }
 
-  private String getLineIndex() {
-    return lineIndex++ + ": ";
+  private void addLine(String instruction) {
+    formattedAsm += lineIndex++ + ": " + instruction;
   }
 }

@@ -34,6 +34,31 @@ public class CodegenTest {
             new String[] {},
             new Declaration[] {},
             new Statement[] {
+                    new ExpressionStatement(new Write(new Call("sub", new Expression[]
+                            {new Read(), new Read()}))),
+                    new Return(new Number(0))
+            });
+
+    Function sub = new Function("sub",
+            new String[] {"a", "b"},
+            new Declaration[] {},
+            new Statement[] {
+                    new Return(new Binary(new Variable("a"), Binop.Minus, new Variable("b")))
+            });
+
+    program = new Program(new Function[] {sub, main});
+
+    renderMiniJava(program);
+    instructions = compile(program);
+    renderAsm(instructions);
+    interpret(instructions);
+
+    System.out.println("---");
+
+    main = new Function("main",
+            new String[] {},
+            new Declaration[] {},
+            new Statement[] {
                     new ExpressionStatement(new Write(new Call("fak", new Expression[] {new Read()}))),
                     new Return(new Number(0))
             });
